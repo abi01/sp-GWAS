@@ -1,0 +1,62 @@
+---
+title: "Merged Biallelic PCA"
+author: "A.Gyawali"
+date: "11/16/2017"
+output: html_document
+---
+
+### source: wurmlab.github.io/genomicscourse/2016-SIB/practicals/population_genetics/popgen
+```{r read in data}
+setwd("C:/Users/Abiskar Gyawali/Desktop/")
+library(adegenet)
+library(ggplot2)
+
+# read in data (reduced to 10000 SNPs)
+snp_matrix <- read.table("reduced_snp_matrix.txt")
+
+# read in loci positions
+loci <- read.table("loci_positions.txt", header=TRUE)
+```
+
+```{r generate genlight obj}
+# create genlight object 
+snp <- new("genlight",
+       snp_matrix,
+       chromosome=loci$scaffold,
+       position=loci$position,
+       ploidy=as.integer(2),
+       #pop=as.factor(c(rep("Cycle_0",192), rep("Cycle_1",96), rep("Cycle_0",192),     rep("Cycle_1",287))))
+       pop=as.factor(c(rep("Short",96), rep("Tall",96), rep("Short",96),rep("Tall",96),rep("Short",96),rep("Tall",95), rep("Short",96),rep("Tall",96))))
+
+#snp
+#snp@ind.names
+#head(snp@gen)
+# snp@chromosome
+
+# try to set ploidy...
+ploidy(snp) <- as.integer(2)
+```
+
+## Heatmap of genotypes
+```{r heatmap of genos}
+# heatmap of genotypes 
+glPlot(snp)
+```
+
+## PCA
+```{r run PCA}
+pca <- glPca(snp, nf=10)
+
+# fast plot
+scatter(pca, posi="bottomright")
+
+# colored by population
+cbpalette <- (c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00","black"))
+
+plot(pca$scores[,1], pca$scores[,2],
+col=snp@pop)
+legend("bottomright", legend=levels(snp@pop), col=levels(snp@pop))
+
+s.class(pca$scores, pop(snp), grid=FALSE, col=cbpalette)
+
+```
